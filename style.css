@@ -1,0 +1,743 @@
+/* Reset some default browser styles */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+
+/* How the body should look like*/
+
+body {
+    font-family: 'Poppins', sans-serif;
+    background-color: white;
+    color: #353535;
+    line-height: 1.6;
+    padding: 1rem;
+}
+
+
+/* ===== NAVBAR ===== */
+
+.primary-nav {
+    background: linear-gradient(90deg, rgb(136, 18, 9), rgb(253, 143, 143));
+    color: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.primary-nav .logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.primary-nav .nav-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.primary-nav .nav-links a {
+    color: rgb(248, 248, 248);
+    font-weight: 500;
+}
+
+.primary-nav .nav-links a:hover {
+    color: #660202;
+}
+
+.faculty-page {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 1rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.faculty-hero {
+    background: linear-gradient(135deg, #fdecea, #ffe9f1);
+    border-radius: 20px;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.08);
+}
+
+.hero-copy h1 {
+    font-size: 2.2rem;
+    color: #4c0808;
+    margin-bottom: 0.5rem;
+}
+
+.hero-actions {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.primary-btn {
+    background: #b71c1c;
+    color: white;
+    padding: 0.85rem 1.4rem;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 12px 25px rgba(183, 28, 28, 0.4);
+}
+
+.primary-btn:hover {
+    background: #8c1414;
+}
+
+.text-link {
+    color: #2c2c2c;
+    font-weight: 600;
+    align-self: center;
+}
+
+.faculty-stats {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.stat-card {
+    background: #fff;
+    padding: 1.2rem;
+    border-radius: 14px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
+}
+
+.stat-card .label {
+    font-size: 0.75rem;
+    color: #6d6d6d;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.stat-card h2 {
+    font-size: 2rem;
+    margin-top: 0.5rem;
+    color: #2c0b0b;
+}
+
+.faculty-layout {
+    display: grid;
+    gap: 1.5rem;
+}
+
+.course-table {
+    grid-column: 1 / -1;
+}
+
+@media (min-width: 900px) {
+    .faculty-layout {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .course-table {
+        grid-column: 1 / -1;
+    }
+}
+
+.faculty-card,
+.request-board,
+.course-table {
+    background: #fff;
+    border-radius: 18px;
+    padding: 1.75rem;
+    box-shadow: 0 25px 45px rgba(0, 0, 0, 0.06);
+}
+
+.section-head h2 {
+    margin-bottom: 0.25rem;
+    font-size: 1.6rem;
+}
+
+.message-stack {
+    margin-bottom: 1rem;
+}
+
+.course-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.form-grid input,
+.form-grid textarea,
+.course-form select,
+.request-actions select {
+    border-radius: 10px;
+    border: 1px solid #d6d6d6;
+    padding: 0.85rem;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grid input:focus,
+.form-grid textarea:focus,
+.course-form select:focus,
+.request-actions select:focus {
+    border-color: #a30000;
+    box-shadow: 0 0 0 3px rgba(163, 0, 0, 0.2);
+    outline: none;
+}
+
+.course-form textarea {
+    resize: vertical;
+}
+
+.guidelines {
+    font-size: 0.9rem;
+    color: #54606a;
+}
+
+.guidelines ul {
+    list-style: disc inside;
+    margin-top: 0.4rem;
+    padding-left: 0;
+}
+
+.request-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.request-card {
+    border: 1px solid #f0d2d2;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    background: #fff9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.request-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.badge {
+    padding: 0.25rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge--pending {
+    background: #fff3d6;
+    color: #b06800;
+}
+
+.badge--approved {
+    background: #e5f6ea;
+    color: #1a6a2c;
+}
+
+.badge--rejected {
+    background: #ffebe9;
+    color: #7a1d13;
+}
+
+.request-actions {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.request-actions button {
+    border: none;
+    border-radius: 10px;
+    padding: 0.65rem 1.2rem;
+    background: #b71c1c;
+    color: white;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.course-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.course-card {
+    border: 1px solid #ffdfdf;
+    border-radius: 14px;
+    padding: 1rem 1.25rem;
+    background: #fff7f7;
+}
+
+.course-card__top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 0.5rem;
+}
+
+.course-card strong {
+    font-size: 1.2rem;
+    color: #a30c0c;
+}
+
+.course-card p {
+    color: #3c3c3c;
+}
+
+.faculty-card button {
+    align-self: flex-start;
+}
+
+
+/* ===== DASHBOARD LAYOUT ===== */
+
+.dashboard-main {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05);
+}
+
+.hero {
+    background: linear-gradient(135deg, #fceeec, #ffe5ee);
+    padding: 2rem;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.hero h1 {
+    font-size: 2.25rem;
+    margin-bottom: 0;
+    color: #5f0a0a;
+}
+
+.hero .subtitle {
+    font-size: 1rem;
+    color: #4c4c4c;
+}
+
+.hero .actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.hero .actions a {
+    text-transform: capitalize;
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 600;
+    color: #fff;
+    background: #bf1b1b;
+    text-decoration: none;
+    box-shadow: 0 10px 25px rgba(191, 27, 27, 0.35);
+}
+
+.hero .actions a.secondary {
+    background: #e57474;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.stats article {
+    background: #fff7f7;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.07);
+}
+
+.stats .label {
+    color: #7f7f7f;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.75rem;
+}
+
+.stats h2 {
+    margin: 0.25rem 0;
+    font-size: 2rem;
+}
+
+.course-grid {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+
+/* ===== DASHBOARD TITLE ===== */
+
+.dashboard-title {
+    text-align: center;
+    margin: 2rem 0 1rem 0;
+    font-size: 2rem;
+    color: #910f0f;
+}
+
+.student-wrapper {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin: 1rem 0;
+}
+
+.student-card,
+.request-history {
+    background: #fff;
+    border-radius: 14px;
+    padding: 1.5rem;
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.07);
+}
+
+.course-offerings {
+    margin-top: 1rem;
+    display: grid;
+    gap: 1rem;
+}
+
+.course-card.compact {
+    display: flex;
+    flex-direction: column;
+}
+
+.course-card.compact p {
+    margin-bottom: 0.5rem;
+}
+
+.course-card.compact form {
+    margin-top: auto;
+}
+
+.course-card.compact button {
+    background-color: #4e93ff;
+    border-radius: 6px;
+    padding: 0.7rem;
+}
+
+.request-history ul {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.request-history li {
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: #f9f6ff;
+}
+
+.request-history strong {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #1c1c1c;
+}
+
+.alert {
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.alert-error {
+    background: #ffecec;
+    border: 1px solid #ff8b8b;
+    color: #7a0b0b;
+}
+
+.alert-success {
+    background: #ecf9ed;
+    border: 1px solid #7fd29f;
+    color: #175026;
+}
+
+.empty-state {
+    color: #646464;
+}
+
+.extra-links {
+    font-size: 0.95rem;
+}
+
+.extra-links a {
+    color: #007bff;
+}
+
+
+/* ===== COURSE GRID ===== */
+
+.course-grid {
+    display: grid;
+    gap: 1.5rem;
+    padding: 0 2rem 3rem 2rem;
+}
+
+
+/* ===== COURSE CARD ===== */
+
+.course-card {
+    background: rgb(251, 251, 251);
+    border-radius: 10px;
+    padding: 1.5rem;
+}
+
+.course-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+}
+
+.course-card h3 {
+    color: #de1c1c;
+    margin-bottom: 0.5rem;
+}
+
+.course-card p {
+    margin-bottom: 1rem;
+}
+
+.course-card button {
+    background-color: #ee8181;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.course-card button:hover {
+    background-color: #700000;
+}
+
+.student-wrapper .course-list {
+    display: grid;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.student-wrapper .approved-courses {
+    margin-top: 2rem;
+}
+
+.student-wrapper .approved-courses h2 {
+    margin-bottom: 0.8rem;
+    color: #233f5b;
+}
+
+
+/* ==========================================
+    RESPONSIVE DESIGN SECTION
+   ==========================================
+   I researched responsive design on W3Schools 
+   , and I learned that @media 
+   queries help web pages adjust their layout 
+   depending on screen size. 
+   This part of my code is to make the dashboard 
+   look good on smaller screens (like phones).
+*/
+
+button.join-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    cursor: pointer;
+    margin-top: 1rem;
+}
+
+@media (max-width: 600px) {
+    .primary-nav {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .primary-nav .nav-links {
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+    }
+}
+
+
+/* ===== LOGIN PAGE ===== */
+
+body.login-page {
+    min-height: 100vh;
+    background: #f4f8ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+}
+
+.login-container {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
+}
+
+.login-container h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    color: #2d2d2d;
+    font-size: 1.75rem;
+}
+
+.login-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.login-container label {
+    font-weight: 600;
+}
+
+.login-container input {
+    padding: 0.8rem;
+    border-radius: 8px;
+    border: 1px solid #bfc4d1;
+    font-size: 1rem;
+}
+
+.login-container input:focus {
+    border-color: #4e93ff;
+    box-shadow: 0 0 0 2px rgba(78, 147, 255, 0.25);
+    outline: none;
+}
+
+.login-container button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.85rem;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.login-container button:hover {
+    background: #0056b3;
+}
+
+.login-container .extra-links {
+    margin-top: 1rem;
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+.login-container .extra-links a {
+    color: #007bff;
+}
+
+
+/* ===== REGISTER PAGE ===== */
+
+body.register-page {
+    min-height: 100vh;
+    background: radial-gradient(circle at top, #e3faf1 0%, #f0fbf8 70%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 2rem 1rem;
+}
+
+.register-container {
+    background: #ffffff;
+    padding: 2.5rem;
+    border-radius: 16px;
+    width: 100%;
+    max-width: 460px;
+    box-shadow: 0 15px 40px rgba(20, 88, 63, 0.15);
+}
+
+.register-container h1 {
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1.9rem;
+    color: #0d4a3f;
+}
+
+.register-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.register-container label {
+    font-weight: 600;
+    color: #1c3830;
+}
+
+.register-container input,
+.register-container select {
+    padding: 0.85rem;
+    border-radius: 8px;
+    border: 1px solid #a7bfb0;
+    font-size: 1rem;
+}
+
+.register-container input:focus,
+.register-container select:focus {
+    border-color: #2dbb7f;
+    box-shadow: 0 0 0 3px rgba(45, 187, 127, 0.25);
+    outline: none;
+}
+
+.register-container button {
+    background: #2dbb7f;
+    color: #fff;
+    border: none;
+    padding: 0.85rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.register-container button:hover {
+    background: #229566;
+}
+
+.register-container .extra-links {
+    margin-top: 1.2rem;
+    text-align: center;
+    font-size: 0.95rem;
+}
+
+.register-container .extra-links a {
+    color: #2dbb7f;
+}
