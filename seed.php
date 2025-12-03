@@ -14,6 +14,12 @@ $users = [
         'password' => password_hash('Student123', PASSWORD_DEFAULT),
         'role' => 'student',
     ],
+    [
+        'name' => 'Lisa Assistant',
+        'email' => 'intern@example.com',
+        'password' => password_hash('Intern123', PASSWORD_DEFAULT),
+        'role' => 'intern',
+    ],
 ];
 
 $insertUser = $pdo->prepare(
@@ -60,6 +66,10 @@ if ($facultyId) {
     $student->execute(['email' => 'student@example.com']);
     $studentId = $student->fetchColumn();
 
+    $internStmt = $pdo->prepare('SELECT id FROM users WHERE email = :email AND role = "intern"');
+    $internStmt->execute(['email' => 'intern@example.com']);
+    $internId = $internStmt->fetchColumn();
+
     if ($courseId && $studentId) {
         $insertRequest = $pdo->prepare(
             'INSERT OR IGNORE INTO join_requests (course_id, student_id, status) VALUES (:course_id, :student_id, :status)'
@@ -67,9 +77,56 @@ if ($facultyId) {
         $insertRequest->execute([
             'course_id' => $courseId,
             'student_id' => $studentId,
-            'status' => 'pending',
+            'status' => 'approved',
         ]);
+
+        $sessionCheck = $pdo->prepare(
+            'SELECT id FROM course_sessions WHERE course_id = :course_id AND title = :title'
+        );
+        $sessionTitle = 'Kickoff Session';
+        $sessionCheck->execute([
+            'course_id' => $courseId,
+            'title' => $sessionTitle,
+        ]);
+
+        if (!$sessionCheck->fetchColumn()) {
+            $sessionInsert = $pdo->prepare(
+                'INSERT INTO course_sessions (course_id, title, session_date, access_code, created_by)
+                 VALUES (:course_id, :title, :session_date, :code, :created_by)'
+            );
+            $sessionInsert->execute([
+                'course_id' => $courseId,
+                'title' => $sessionTitle,
+                'session_date' => date('Y-m-d H:i:s', strtotime('+1 day')),
+                'code' => 'WELCOME',
+                'created_by' => $facultyId,
+            ]);
+
+            $sessionId = (int) $pdo->lastInsertId();
+
+            if ($sessionId) {
+                $attendance = $pdo->prepare(
+                    'INSERT INTO attendance_records (session_id, student_id, status, method)
+                     VALUES (:session_id, :student_id, "present", "staff")'
+                );
+                $attendance->execute([
+                    'session_id' => $sessionId,
+                    'student_id' => $studentId,
+                ]);
+            }
+
+            if ($internId) {
+                $assignAssistant = $pdo->prepare(
+                    'INSERT OR IGNORE INTO course_staff (course_id, staff_id, role) VALUES (:course_id, :staff_id, "intern")'
+                );
+                $assignAssistant->execute([
+                    'course_id' => $courseId,
+                    'staff_id' => $internId,
+                ]);
+            }
+        }
     }
 }
 
-echo "Seed complete. Use faculty@example.com / Faculty123 or student@example.com / Student123 to log in.\n";
+echo "Seed complete. Use faculty@example.com / Faculty123, intern@example.com / Intern123, or student@example.com / Student123 to log in.\n";
+?>

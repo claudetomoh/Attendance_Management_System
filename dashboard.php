@@ -42,8 +42,9 @@ $courseList = $pdo->query(
     <div class="logo">SmartRegister</div>
     <div class="nav-links">
       <a href="dashboard.php" class="active">Dashboard</a>
-      <?php if ($user['role'] === 'faculty'): ?>
-        <a href="faculty.php">Faculty Hub</a>
+      <?php if (in_array($user['role'], ['faculty', 'intern'], true)): ?>
+        <a href="faculty.php">Teaching Hub</a>
+        <a href="attendance_manage.php">Attendance</a>
       <?php endif; ?>
       <?php if ($user['role'] === 'student'): ?>
         <a href="student_dashboard.php">Student Dashboard</a>
@@ -58,8 +59,8 @@ $courseList = $pdo->query(
       <h1><?php echo escape($user['name']); ?> • <?php echo escape(ucfirst($user['role'])); ?></h1>
       <p class="subtitle">Create courses, review requests, and keep attendance on track.</p>
       <div class="actions">
-        <?php if ($user['role'] === 'faculty'): ?>
-          <a class="primary" href="faculty.php">Open Faculty Hub</a>
+        <?php if (in_array($user['role'], ['faculty', 'intern'], true)): ?>
+          <a class="primary" href="attendance_manage.php">Open Attendance Hub</a>
         <?php elseif ($user['role'] === 'student'): ?>
           <a class="primary" href="student_dashboard.php">Go to Student Portal</a>
         <?php else: ?>

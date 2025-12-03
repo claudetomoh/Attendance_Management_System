@@ -2,9 +2,10 @@
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/functions.php';
 
-$user = require_role('faculty');
+$user = require_roles(['faculty', 'intern']);
 $errors = [];
 $successMessage = '';
+$assistantMessage = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['action']) && $_POST['action'] === 'create_course') {
@@ -51,13 +52,63 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
           add_flash($errors, 'Unable to update that request.');
         }
     }
+
+    if (isset($_POST['action']) && $_POST['action'] === 'add_staff' && $user['role'] === 'faculty') {
+        $courseId = (int) ($_POST['course_id'] ?? 0);
+        $email = strtolower(trim($_POST['staff_email'] ?? ''));
+
+        if (!user_has_course_access($pdo, $user, $courseId)) {
+            add_flash($errors, 'You can only add assistants to your own courses.');
+        }
+
+        if ($email === '') {
+            add_flash($errors, 'Provide an email to add as an assistant.');
+        }
+
+        if (empty($errors)) {
+            $staffLookup = $pdo->prepare('SELECT id, role FROM users WHERE email = :email');
+            $staffLookup->execute(['email' => $email]);
+            $staff = $staffLookup->fetch(PDO::FETCH_ASSOC);
+
+            if (!$staff || !in_array($staff['role'], ['intern', 'faculty'], true)) {
+                add_flash($errors, 'User must exist and be an intern or faculty member.');
+            } else {
+                $assign = $pdo->prepare(
+                    'INSERT OR IGNORE INTO course_staff (course_id, staff_id, role) VALUES (:course_id, :staff_id, :role)'
+                );
+                $assign->execute([
+                    'course_id' => $courseId,
+                    'staff_id' => $staff['id'],
+                    'role' => $staff['role'],
+                ]);
+
+                $assistantMessage = 'Assistant added to the course.';
+            }
+        }
+    }
 }
 
-$courses = $pdo->prepare(
-    'SELECT id, title, description, created_at FROM courses WHERE instructor_id = :instructor_id ORDER BY created_at DESC'
-);
+$coursesQuery = 'SELECT id, title, description, created_at FROM courses WHERE instructor_id = :instructor_id ORDER BY created_at DESC';
+$courses = $pdo->prepare($coursesQuery);
 $courses->execute(['instructor_id' => $user['id']]);
 $courseList = $courses->fetchAll(PDO::FETCH_ASSOC);
+
+$assistantsByCourse = [];
+if (!empty($courseList)) {
+  $courseIds = array_column($courseList, 'id');
+  $placeholders = implode(',', array_fill(0, count($courseIds), '?'));
+  $assistantStmt = $pdo->prepare(
+    "SELECT cs.course_id, u.name, u.email, cs.role
+     FROM course_staff cs
+     JOIN users u ON u.id = cs.staff_id
+     WHERE cs.course_id IN ($placeholders)
+     ORDER BY u.name"
+  );
+  $assistantStmt->execute($courseIds);
+  foreach ($assistantStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+    $assistantsByCourse[$row['course_id']][] = $row;
+  }
+}
 
 $requests = $pdo->prepare(
     'SELECT jr.id, jr.status, jr.created_at, c.title, s.name AS student_name
@@ -92,7 +143,8 @@ foreach ($requestList as $request) {
     <div class="logo">SmartRegister</div>
     <div class="nav-links">
       <a href="dashboard.php">Dashboard</a>
-      <a href="faculty.php" class="active">Faculty Hub</a>
+      <a href="faculty.php" class="active">Teaching Hub</a>
+      <a href="attendance_manage.php">Attendance</a>
       <a href="logout.php">Log out</a>
     </div>
   </nav>
@@ -142,6 +194,11 @@ foreach ($requestList as $request) {
           <?php if ($successMessage): ?>
             <div class="alert alert-success" aria-live="polite">
               <p><?php echo escape($successMessage); ?></p>
+            </div>
+          <?php endif; ?>
+          <?php if ($assistantMessage): ?>
+            <div class="alert alert-success" aria-live="polite">
+              <p><?php echo escape($assistantMessage); ?></p>
             </div>
           <?php endif; ?>
         </div>
@@ -220,6 +277,29 @@ foreach ($requestList as $request) {
                   <span class="muted"><?php echo date('M j, Y', strtotime($course['created_at'])); ?></span>
                 </div>
                 <p><?php echo escape($course['description'] ?: 'No description provided.'); ?></p>
+                <?php if (!empty($assistantsByCourse[$course['id']])): ?>
+                  <div class="assistant-list">
+                    <p class="muted">Assistants</p>
+                    <ul>
+                      <?php foreach ($assistantsByCourse[$course['id']] as $assistant): ?>
+                        <li>
+                          <strong><?php echo escape($assistant['name']); ?></strong>
+                          <span><?php echo escape($assistant['email']); ?></span>
+                          <span class="badge badge--approved"><?php echo ucfirst($assistant['role']); ?></span>
+                        </li>
+                      <?php endforeach; ?>
+                    </ul>
+                  </div>
+                <?php endif; ?>
+                <?php if ($user['role'] === 'faculty'): ?>
+                  <form method="POST" class="assistant-form">
+                    <input type="hidden" name="action" value="add_staff" />
+                    <input type="hidden" name="course_id" value="<?php echo (int) $course['id']; ?>" />
+                    <label for="assistant-<?php echo (int) $course['id']; ?>">Add assistant (email)</label>
+                    <input type="email" id="assistant-<?php echo (int) $course['id']; ?>" name="staff_email" placeholder="intern@example.com" required />
+                    <button type="submit">Add assistant</button>
+                  </form>
+                <?php endif; ?>
               </article>
             <?php endforeach; ?>
           </div>
