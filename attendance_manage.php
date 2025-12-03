@@ -9,14 +9,14 @@ $successMessage = '';
 
 if ($user['role'] === 'faculty') {
   $coursesStmt = $pdo->prepare(
-    'SELECT id, title FROM courses WHERE instructor_id = :instructor_id ORDER BY title'
+    'SELECT id, title FROM ' . TABLE_COURSES . ' WHERE instructor_id = :instructor_id ORDER BY title'
   );
   $coursesStmt->execute(['instructor_id' => $user['id']]);
 } else {
   $coursesStmt = $pdo->prepare(
     'SELECT c.id, c.title
-     FROM course_staff cs
-     JOIN courses c ON c.id = cs.course_id
+     FROM ' . TABLE_COURSE_STAFF . ' cs
+     JOIN ' . TABLE_COURSES . ' c ON c.id = cs.course_id
      WHERE cs.staff_id = :staff_id
      ORDER BY c.title'
   );
@@ -56,12 +56,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $code = '';
             do {
                 $code = generate_session_code();
-                $existingCode = $pdo->prepare('SELECT 1 FROM course_sessions WHERE access_code = :code');
+            $existingCode = $pdo->prepare('SELECT 1 FROM ' . TABLE_COURSE_SESSIONS . ' WHERE access_code = :code');
                 $existingCode->execute(['code' => $code]);
             } while ($existingCode->fetchColumn());
 
             $insert = $pdo->prepare(
-                'INSERT INTO course_sessions (course_id, title, session_date, access_code, created_by)
+            'INSERT INTO ' . TABLE_COURSE_SESSIONS . ' (course_id, title, session_date, access_code, created_by)
                  VALUES (:course_id, :title, :session_date, :code, :created_by)'
             );
             $insert->execute([
@@ -80,12 +80,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $sessionId = (int) ($_POST['session_id'] ?? 0);
         $availability = $pdo->prepare(
           'SELECT cs.id, cs.course_id
-           FROM course_sessions cs
-           JOIN courses c ON c.id = cs.course_id
+           FROM ' . TABLE_COURSE_SESSIONS . ' cs
+           JOIN ' . TABLE_COURSES . ' c ON c.id = cs.course_id
            WHERE cs.id = :session_id AND (
             c.instructor_id = :user_id OR
             EXISTS (
-              SELECT 1 FROM course_staff cs2
+              SELECT 1 FROM ' . TABLE_COURSE_STAFF . ' cs2
               WHERE cs2.course_id = cs.course_id AND cs2.staff_id = :user_id
             )
            )'
@@ -96,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
 
         if ($availability->fetch()) {
-          $close = $pdo->prepare('UPDATE course_sessions SET status = "closed" WHERE id = :id');
+          $close = $pdo->prepare('UPDATE ' . TABLE_COURSE_SESSIONS . ' SET status = "closed" WHERE id = :id');
           $close->execute(['id' => $sessionId]);
           $successMessage = 'Session closed; students can no longer self-check in.';
         } else {
@@ -111,12 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         $sessionStmt = $pdo->prepare(
           'SELECT cs.id, cs.course_id, cs.status
-           FROM course_sessions cs
-           JOIN courses c ON c.id = cs.course_id
+           FROM ' . TABLE_COURSE_SESSIONS . ' cs
+           JOIN ' . TABLE_COURSES . ' c ON c.id = cs.course_id
            WHERE cs.id = :session_id AND (
             c.instructor_id = :user_id OR
             EXISTS (
-              SELECT 1 FROM course_staff cs2
+              SELECT 1 FROM ' . TABLE_COURSE_STAFF . ' cs2
               WHERE cs2.course_id = cs.course_id AND cs2.staff_id = :user_id
             )
            )'
@@ -135,10 +135,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             $record = $pdo->prepare(
-                'INSERT INTO attendance_records (session_id, student_id, status, method, marked_by)
-                 VALUES (:session_id, :student_id, :status, "staff", :marked_by)
-                 ON CONFLICT(session_id, student_id)
-                 DO UPDATE SET status = excluded.status, marked_by = excluded.marked_by, method = "staff", marked_at = CURRENT_TIMESTAMP'
+              'INSERT INTO ' . TABLE_ATTENDANCE_RECORDS . ' (session_id, student_id, status, method, marked_by)
+               VALUES (:session_id, :student_id, :status, "staff", :marked_by)
+               ON DUPLICATE KEY UPDATE status = VALUES(status), marked_by = VALUES(marked_by), method = "staff", marked_at = CURRENT_TIMESTAMP'
             );
             $record->execute([
                 'session_id' => $sessionId,
@@ -156,16 +155,16 @@ $sessionsStmt = $pdo->prepare(
   'SELECT cs.id, cs.title, cs.session_date, cs.access_code, cs.status,
       c.title AS course_title,
       (
-        SELECT COUNT(*) FROM attendance_records ar WHERE ar.session_id = cs.id AND ar.status = "present"
+        SELECT COUNT(*) FROM ' . TABLE_ATTENDANCE_RECORDS . ' ar WHERE ar.session_id = cs.id AND ar.status = "present"
       ) AS present_count,
       (
-        SELECT COUNT(*) FROM join_requests jr
+        SELECT COUNT(*) FROM ' . TABLE_JOIN_REQUESTS . ' jr
         WHERE jr.course_id = cs.course_id AND jr.status = "approved"
       ) AS enrolled_count
-   FROM course_sessions cs
-   JOIN courses c ON c.id = cs.course_id
+   FROM ' . TABLE_COURSE_SESSIONS . ' cs
+   JOIN ' . TABLE_COURSES . ' c ON c.id = cs.course_id
    WHERE c.instructor_id = :user_id OR EXISTS (
-    SELECT 1 FROM course_staff cs2 WHERE cs2.course_id = cs.course_id AND cs2.staff_id = :user_id
+    SELECT 1 FROM ' . TABLE_COURSE_STAFF . ' cs2 WHERE cs2.course_id = cs.course_id AND cs2.staff_id = :user_id
    )
    ORDER BY cs.session_date DESC'
 );
@@ -174,12 +173,12 @@ $sessions = $sessionsStmt->fetchAll(PDO::FETCH_ASSOC);
 
 $studentsStmt = $pdo->prepare(
   'SELECT jr.student_id, jr.course_id, u.name, c.title AS course_title
-   FROM join_requests jr
-   JOIN courses c ON c.id = jr.course_id
-   JOIN users u ON u.id = jr.student_id
+   FROM ' . TABLE_JOIN_REQUESTS . ' jr
+   JOIN ' . TABLE_COURSES . ' c ON c.id = jr.course_id
+   JOIN ' . TABLE_USERS . ' u ON u.id = jr.student_id
    WHERE jr.status = "approved" AND (
     c.instructor_id = :user_id OR EXISTS (
-      SELECT 1 FROM course_staff cs2 WHERE cs2.course_id = c.id AND cs2.staff_id = :user_id
+      SELECT 1 FROM ' . TABLE_COURSE_STAFF . ' cs2 WHERE cs2.course_id = c.id AND cs2.staff_id = :user_id
     )
    )
    ORDER BY c.title, u.name'

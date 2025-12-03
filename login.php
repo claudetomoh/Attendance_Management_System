@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $stmt = $pdo->prepare('SELECT id, name, role, password_hash FROM users WHERE email = :email');
+        $stmt = $pdo->prepare('SELECT id, name, role, password_hash FROM ' . TABLE_USERS . ' WHERE email = :email');
         $stmt->execute(['email' => $emailInput]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
 

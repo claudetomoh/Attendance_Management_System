@@ -4,29 +4,29 @@ require_once __DIR__ . '/functions.php';
 
 $user = require_login();
 
-$totalCourses = (int) $pdo->query('SELECT COUNT(*) FROM courses')->fetchColumn();
+$totalCourses = (int) $pdo->query('SELECT COUNT(*) FROM ' . TABLE_COURSES)->fetchColumn();
 
 if ($user['role'] === 'faculty') {
     $pendingRequests = $pdo->prepare(
-        'SELECT COUNT(*) FROM join_requests jr
-         JOIN courses c ON jr.course_id = c.id
-         WHERE c.instructor_id = :instructor_id AND jr.status = "pending"'
+      'SELECT COUNT(*) FROM ' . TABLE_JOIN_REQUESTS . ' jr
+       JOIN ' . TABLE_COURSES . ' c ON jr.course_id = c.id
+       WHERE c.instructor_id = :instructor_id AND jr.status = "pending"'
     );
     $pendingRequests->execute(['instructor_id' => $user['id']]);
     $pendingRequestsCount = (int) $pendingRequests->fetchColumn();
 } else {
     $pendingRequests = $pdo->prepare(
-        'SELECT COUNT(*) FROM join_requests WHERE student_id = :student_id AND status = "pending"'
+        'SELECT COUNT(*) FROM ' . TABLE_JOIN_REQUESTS . ' WHERE student_id = :student_id AND status = "pending"'
     );
     $pendingRequests->execute(['student_id' => $user['id']]);
     $pendingRequestsCount = (int) $pendingRequests->fetchColumn();
 }
 
 $courseList = $pdo->query(
-    'SELECT c.id, c.title, c.description, c.created_at, u.name AS instructor
-     FROM courses c
-     JOIN users u ON u.id = c.instructor_id
-     ORDER BY c.created_at DESC'
+  'SELECT c.id, c.title, c.description, c.created_at, u.name AS instructor
+   FROM ' . TABLE_COURSES . ' c
+   JOIN ' . TABLE_USERS . ' u ON u.id = c.instructor_id
+   ORDER BY c.created_at DESC'
 )->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>

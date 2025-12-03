@@ -69,7 +69,7 @@ function generate_session_code(): string
 function is_student_enrolled(PDO $pdo, int $studentId, int $courseId): bool
 {
     $stmt = $pdo->prepare(
-        'SELECT 1 FROM join_requests WHERE student_id = :student_id AND course_id = :course_id AND status = "approved"'
+        'SELECT 1 FROM ' . TABLE_JOIN_REQUESTS . ' WHERE student_id = :student_id AND course_id = :course_id AND status = "approved"'
     );
     $stmt->execute([
         'student_id' => $studentId,
@@ -82,10 +82,10 @@ function is_student_enrolled(PDO $pdo, int $studentId, int $courseId): bool
 function get_accessible_course_ids(PDO $pdo, array $user): array
 {
     if ($user['role'] === 'faculty') {
-        $stmt = $pdo->prepare('SELECT id FROM courses WHERE instructor_id = :id');
+        $stmt = $pdo->prepare('SELECT id FROM ' . TABLE_COURSES . ' WHERE instructor_id = :id');
     } else {
         $stmt = $pdo->prepare(
-            'SELECT course_id FROM course_staff WHERE staff_id = :id'
+            'SELECT course_id FROM ' . TABLE_COURSE_STAFF . ' WHERE staff_id = :id'
         );
     }
 
@@ -96,10 +96,10 @@ function get_accessible_course_ids(PDO $pdo, array $user): array
 function user_has_course_access(PDO $pdo, array $user, int $courseId): bool
 {
     if ($user['role'] === 'faculty') {
-        $stmt = $pdo->prepare('SELECT 1 FROM courses WHERE id = :course_id AND instructor_id = :user_id');
+        $stmt = $pdo->prepare('SELECT 1 FROM ' . TABLE_COURSES . ' WHERE id = :course_id AND instructor_id = :user_id');
     } else {
         $stmt = $pdo->prepare(
-            'SELECT 1 FROM course_staff WHERE course_id = :course_id AND staff_id = :user_id'
+            'SELECT 1 FROM ' . TABLE_COURSE_STAFF . ' WHERE course_id = :course_id AND staff_id = :user_id'
         );
     }
 

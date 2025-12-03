@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
-        $check = $pdo->prepare('SELECT id FROM users WHERE email = :email');
+        $check = $pdo->prepare('SELECT id FROM ' . TABLE_USERS . ' WHERE email = :email');
         $check->execute(['email' => $emailInput]);
 
         if ($check->fetch()) {
@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         } else {
             $hash = password_hash($passwordInput, PASSWORD_DEFAULT);
             $insert = $pdo->prepare(
-                'INSERT INTO users (name, email, password_hash, role) VALUES (:name, :email, :hash, :role)'
+              'INSERT INTO ' . TABLE_USERS . ' (name, email, password_hash, role) VALUES (:name, :email, :hash, :role)'
             );
             $insert->execute([
                 'name' => $nameInput,

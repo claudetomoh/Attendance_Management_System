@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if (empty($errors)) {
             $stmt = $pdo->prepare(
-                'INSERT INTO courses (title, description, instructor_id) VALUES (:title, :description, :instructor_id)'
+              'INSERT INTO ' . TABLE_COURSES . ' (title, description, instructor_id) VALUES (:title, :description, :instructor_id)'
             );
             $stmt->execute([
                 'title' => $title,
@@ -37,8 +37,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             : 'pending';
 
         $update = $pdo->prepare(
-            'UPDATE join_requests SET status = :status, updated_at = CURRENT_TIMESTAMP
-             WHERE id = :id AND course_id IN (SELECT id FROM courses WHERE instructor_id = :instructor_id)'
+          'UPDATE ' . TABLE_JOIN_REQUESTS . ' SET status = :status, updated_at = CURRENT_TIMESTAMP
+           WHERE id = :id AND course_id IN (SELECT id FROM ' . TABLE_COURSES . ' WHERE instructor_id = :instructor_id)'
         );
         $update->execute([
             'status' => $status,
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         if (empty($errors)) {
-            $staffLookup = $pdo->prepare('SELECT id, role FROM users WHERE email = :email');
+            $staffLookup = $pdo->prepare('SELECT id, role FROM ' . TABLE_USERS . ' WHERE email = :email');
             $staffLookup->execute(['email' => $email]);
             $staff = $staffLookup->fetch(PDO::FETCH_ASSOC);
 
@@ -74,12 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 add_flash($errors, 'User must exist and be an intern or faculty member.');
             } else {
                 $assign = $pdo->prepare(
-                    'INSERT OR IGNORE INTO course_staff (course_id, staff_id, role) VALUES (:course_id, :staff_id, :role)'
+                  'INSERT INTO ' . TABLE_COURSE_STAFF . ' (course_id, staff_id, role) VALUES (:course_id, :staff_id, :role)
+                   ON DUPLICATE KEY UPDATE role = VALUES(role), created_at = CURRENT_TIMESTAMP'
                 );
                 $assign->execute([
-                    'course_id' => $courseId,
-                    'staff_id' => $staff['id'],
-                    'role' => $staff['role'],
+                  'course_id' => $courseId,
+                  'staff_id' => $staff['id'],
+                  'role' => $staff['role'],
                 ]);
 
                 $assistantMessage = 'Assistant added to the course.';
@@ -88,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$coursesQuery = 'SELECT id, title, description, created_at FROM courses WHERE instructor_id = :instructor_id ORDER BY created_at DESC';
+$coursesQuery = 'SELECT id, title, description, created_at FROM ' . TABLE_COURSES . ' WHERE instructor_id = :instructor_id ORDER BY created_at DESC';
 $courses = $pdo->prepare($coursesQuery);
 $courses->execute(['instructor_id' => $user['id']]);
 $courseList = $courses->fetchAll(PDO::FETCH_ASSOC);
@@ -97,13 +98,16 @@ $assistantsByCourse = [];
 if (!empty($courseList)) {
   $courseIds = array_column($courseList, 'id');
   $placeholders = implode(',', array_fill(0, count($courseIds), '?'));
-  $assistantStmt = $pdo->prepare(
-    "SELECT cs.course_id, u.name, u.email, cs.role
-     FROM course_staff cs
-     JOIN users u ON u.id = cs.staff_id
-     WHERE cs.course_id IN ($placeholders)
-     ORDER BY u.name"
-  );
+  $assistantStmt = $pdo->prepare(sprintf(
+    'SELECT cs.course_id, u.name, u.email, cs.role
+     FROM %s cs
+     JOIN %s u ON u.id = cs.staff_id
+     WHERE cs.course_id IN (%s)
+     ORDER BY u.name',
+    TABLE_COURSE_STAFF,
+    TABLE_USERS,
+    $placeholders
+  ));
   $assistantStmt->execute($courseIds);
   foreach ($assistantStmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
     $assistantsByCourse[$row['course_id']][] = $row;
@@ -111,12 +115,12 @@ if (!empty($courseList)) {
 }
 
 $requests = $pdo->prepare(
-    'SELECT jr.id, jr.status, jr.created_at, c.title, s.name AS student_name
-     FROM join_requests jr
-     JOIN courses c ON c.id = jr.course_id
-     JOIN users s ON s.id = jr.student_id
-     WHERE c.instructor_id = :instructor_id
-     ORDER BY jr.created_at DESC'
+  'SELECT jr.id, jr.status, jr.created_at, c.title, s.name AS student_name
+   FROM ' . TABLE_JOIN_REQUESTS . ' jr
+   JOIN ' . TABLE_COURSES . ' c ON c.id = jr.course_id
+   JOIN ' . TABLE_USERS . ' s ON s.id = jr.student_id
+   WHERE c.instructor_id = :instructor_id
+   ORDER BY jr.created_at DESC'
 );
 $requests->execute(['instructor_id' => $user['id']]);
 $requestList = $requests->fetchAll(PDO::FETCH_ASSOC);

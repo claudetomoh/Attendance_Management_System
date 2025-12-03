@@ -1,95 +1,119 @@
 <?php
-$databaseDir = __DIR__ . '/data';
-$databaseFile = $databaseDir . '/attendance.db';
-
-if (!is_dir($databaseDir)) {
-    mkdir($databaseDir, 0755, true);
-}
+const TABLE_USERS = '`AMS_users`';
+const TABLE_COURSES = '`AMS_courses`';
+const TABLE_JOIN_REQUESTS = '`AMS_join_requests`';
+const TABLE_COURSE_SESSIONS = '`AMS_course_sessions`';
+const TABLE_ATTENDANCE_RECORDS = '`AMS_attendance_records`';
+const TABLE_COURSE_STAFF = '`AMS_course_staff`';
 
 try {
-    $pdo = new PDO('sqlite:' . $databaseFile);
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    $pdo->exec('PRAGMA foreign_keys = ON');
+    $dbHost = '127.0.0.1';
+    $dbPort = 3307;
+    $dbName = 'Attendance_management_system';
+    $dbUser = 'root';
+    $dbPass = '';
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL UNIQUE,
-            password_hash TEXT NOT NULL,
-            role TEXT NOT NULL CHECK(role IN ("faculty", "student", "intern")),
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
-        )'
-    );
+    $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $dbHost, $dbPort, $dbName);
+    $pdo = new PDO($dsn, $dbUser, $dbPass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+    ]);
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS courses (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    $pdo->exec(sprintf(
+        'CREATE TABLE IF NOT EXISTS %s (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL UNIQUE,
+            password_hash VARCHAR(255) NOT NULL,
+            role ENUM("faculty", "student", "intern") NOT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )',
+        TABLE_USERS
+    ));
+
+    $pdo->exec(sprintf(
+        'CREATE TABLE IF NOT EXISTS %s (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             title TEXT NOT NULL,
             description TEXT,
             instructor_id INTEGER NOT NULL,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (instructor_id) REFERENCES users(id) ON DELETE CASCADE
-        )'
-    );
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (instructor_id) REFERENCES %s(id) ON DELETE CASCADE
+        )',
+        TABLE_COURSES,
+        TABLE_USERS
+    ));
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS join_requests (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    $pdo->exec(sprintf(
+        'CREATE TABLE IF NOT EXISTS %s (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             course_id INTEGER NOT NULL,
             student_id INTEGER NOT NULL,
-            status TEXT NOT NULL CHECK(status IN ("pending", "approved", "rejected")) DEFAULT "pending",
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-            FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
+            status ENUM("pending", "approved", "rejected") NOT NULL DEFAULT "pending",
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES %s(id) ON DELETE CASCADE,
+            FOREIGN KEY (student_id) REFERENCES %s(id) ON DELETE CASCADE,
             UNIQUE(course_id, student_id)
-        )'
-    );
+        )',
+        TABLE_JOIN_REQUESTS,
+        TABLE_COURSES,
+        TABLE_USERS
+    ));
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS course_sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    $pdo->exec(sprintf(
+        'CREATE TABLE IF NOT EXISTS %s (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             course_id INTEGER NOT NULL,
-            title TEXT NOT NULL,
-            session_date TEXT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            session_date DATETIME NOT NULL,
             access_code TEXT NOT NULL UNIQUE,
-            status TEXT NOT NULL CHECK(status IN ("open", "closed")) DEFAULT "open",
+            status ENUM("open", "closed") NOT NULL DEFAULT "open",
             created_by INTEGER NOT NULL,
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-            FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE CASCADE
-        )'
-    );
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES %s(id) ON DELETE CASCADE,
+            FOREIGN KEY (created_by) REFERENCES %s(id) ON DELETE CASCADE
+        )',
+        TABLE_COURSE_SESSIONS,
+        TABLE_COURSES,
+        TABLE_USERS
+    ));
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS attendance_records (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    $pdo->exec(sprintf(
+        'CREATE TABLE IF NOT EXISTS %s (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             session_id INTEGER NOT NULL,
             student_id INTEGER NOT NULL,
             marked_by INTEGER,
-            status TEXT NOT NULL CHECK(status IN ("present", "absent", "excused")) DEFAULT "present",
-            method TEXT NOT NULL CHECK(method IN ("self", "staff")) DEFAULT "self",
-            marked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (session_id) REFERENCES course_sessions(id) ON DELETE CASCADE,
-            FOREIGN KEY (student_id) REFERENCES users(id) ON DELETE CASCADE,
-            FOREIGN KEY (marked_by) REFERENCES users(id) ON DELETE SET NULL,
+            status ENUM("present", "absent", "excused") NOT NULL DEFAULT "present",
+            method ENUM("self", "staff") NOT NULL DEFAULT "self",
+            marked_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (session_id) REFERENCES %s(id) ON DELETE CASCADE,
+            FOREIGN KEY (student_id) REFERENCES %s(id) ON DELETE CASCADE,
+            FOREIGN KEY (marked_by) REFERENCES %s(id) ON DELETE SET NULL,
             UNIQUE(session_id, student_id)
-        )'
-    );
+        )',
+        TABLE_ATTENDANCE_RECORDS,
+        TABLE_COURSE_SESSIONS,
+        TABLE_USERS,
+        TABLE_USERS
+    ));
 
-    $pdo->exec(
-        'CREATE TABLE IF NOT EXISTS course_staff (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+    $pdo->exec(sprintf(
+        'CREATE TABLE IF NOT EXISTS %s (
+            id INT AUTO_INCREMENT PRIMARY KEY,
             course_id INTEGER NOT NULL,
             staff_id INTEGER NOT NULL,
             role TEXT NOT NULL DEFAULT "assistant",
-            created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (course_id) REFERENCES courses(id) ON DELETE CASCADE,
-            FOREIGN KEY (staff_id) REFERENCES users(id) ON DELETE CASCADE,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (course_id) REFERENCES %s(id) ON DELETE CASCADE,
+            FOREIGN KEY (staff_id) REFERENCES %s(id) ON DELETE CASCADE,
             UNIQUE(course_id, staff_id)
-        )'
-    );
+        )',
+        TABLE_COURSE_STAFF,
+        TABLE_COURSES,
+        TABLE_USERS
+    ));
 } catch (PDOException $e) {
     die('Database initialization failed: ' . htmlspecialchars($e->getMessage()));
 }

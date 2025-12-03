@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($action === 'request_course' && isset($_POST['course_id'])) {
     $courseId = (int) $_POST['course_id'];
 
-    $courseCheck = $pdo->prepare('SELECT id FROM courses WHERE id = :id');
+    $courseCheck = $pdo->prepare('SELECT id FROM ' . TABLE_COURSES . ' WHERE id = :id');
     $courseCheck->execute(['id' => $courseId]);
 
     if (!$courseCheck->fetch()) {
@@ -23,7 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($joinErrors)) {
       $duplicate = $pdo->prepare(
-        'SELECT id FROM join_requests WHERE student_id = :student_id AND course_id = :course_id'
+        'SELECT id FROM ' . TABLE_JOIN_REQUESTS . ' WHERE student_id = :student_id AND course_id = :course_id'
       );
       $duplicate->execute([
         'student_id' => $user['id'],
@@ -37,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($joinErrors)) {
       $requestInsert = $pdo->prepare(
-        'INSERT INTO join_requests (course_id, student_id) VALUES (:course_id, :student_id)'
+        'INSERT INTO ' . TABLE_JOIN_REQUESTS . ' (course_id, student_id) VALUES (:course_id, :student_id)'
       );
       $requestInsert->execute([
         'course_id' => $courseId,
@@ -58,8 +58,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (empty($attendanceErrors)) {
       $sessionStmt = $pdo->prepare(
         'SELECT cs.id, cs.course_id, cs.status, cs.session_date, c.title AS course_title
-         FROM course_sessions cs
-         JOIN courses c ON c.id = cs.course_id
+         FROM ' . TABLE_COURSE_SESSIONS . ' cs
+         JOIN ' . TABLE_COURSES . ' c ON c.id = cs.course_id
          WHERE cs.access_code = :code'
       );
       $sessionStmt->execute(['code' => $codeInput]);
@@ -71,10 +71,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         add_flash($attendanceErrors, 'You are not approved for the course that uses this code.');
       } else {
         $record = $pdo->prepare(
-          'INSERT INTO attendance_records (session_id, student_id, status, method)
+          'INSERT INTO ' . TABLE_ATTENDANCE_RECORDS . ' (session_id, student_id, status, method)
            VALUES (:session_id, :student_id, "present", "self")
-           ON CONFLICT(session_id, student_id)
-           DO UPDATE SET status = "present", method = "self", marked_at = CURRENT_TIMESTAMP'
+           ON DUPLICATE KEY UPDATE status = "present", method = "self", marked_at = CURRENT_TIMESTAMP'
         );
         $record->execute([
           'session_id' => $session['id'],
@@ -88,13 +87,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $availableCourses = $pdo->query(
-    'SELECT c.id, c.title, c.description, u.name AS instructor FROM courses c JOIN users u ON u.id = c.instructor_id ORDER BY c.created_at DESC'
+  'SELECT c.id, c.title, c.description, u.name AS instructor FROM ' . TABLE_COURSES . ' c JOIN ' . TABLE_USERS . ' u ON u.id = c.instructor_id ORDER BY c.created_at DESC'
 )->fetchAll(PDO::FETCH_ASSOC);
 
 $requestHistory = $pdo->prepare(
     'SELECT jr.status, jr.created_at, c.title
-     FROM join_requests jr
-     JOIN courses c ON c.id = jr.course_id
+   FROM ' . TABLE_JOIN_REQUESTS . ' jr
+   JOIN ' . TABLE_COURSES . ' c ON c.id = jr.course_id
      WHERE jr.student_id = :student_id
      ORDER BY jr.created_at DESC'
 );
@@ -103,9 +102,9 @@ $requests = $requestHistory->fetchAll(PDO::FETCH_ASSOC);
 
 $approvedCourses = $pdo->prepare(
   'SELECT c.id AS course_id, c.title, c.description, u.name AS instructor, jr.updated_at
-   FROM join_requests jr
-   JOIN courses c ON c.id = jr.course_id
-   JOIN users u ON u.id = c.instructor_id
+  FROM ' . TABLE_JOIN_REQUESTS . ' jr
+  JOIN ' . TABLE_COURSES . ' c ON c.id = jr.course_id
+  JOIN ' . TABLE_USERS . ' u ON u.id = c.instructor_id
    WHERE jr.student_id = :student_id AND jr.status = "approved"
    ORDER BY jr.updated_at DESC'
 );
@@ -116,10 +115,10 @@ $today = date('Y-m-d');
 $todaySessionsStmt = $pdo->prepare(
     'SELECT cs.id, cs.title, cs.session_date, c.title AS course_title,
             IFNULL(ar.status, "not_marked") AS attendance_status
-     FROM course_sessions cs
-     JOIN courses c ON c.id = cs.course_id
-     JOIN join_requests jr ON jr.course_id = cs.course_id AND jr.student_id = :student_id AND jr.status = "approved"
-     LEFT JOIN attendance_records ar ON ar.session_id = cs.id AND ar.student_id = :student_id
+  FROM ' . TABLE_COURSE_SESSIONS . ' cs
+  JOIN ' . TABLE_COURSES . ' c ON c.id = cs.course_id
+  JOIN ' . TABLE_JOIN_REQUESTS . ' jr ON jr.course_id = cs.course_id AND jr.student_id = :student_id AND jr.status = "approved"
+  LEFT JOIN ' . TABLE_ATTENDANCE_RECORDS . ' ar ON ar.session_id = cs.id AND ar.student_id = :student_id
      WHERE DATE(cs.session_date) = :today
      ORDER BY cs.session_date DESC'
 );
@@ -133,10 +132,10 @@ $overallStmt = $pdo->prepare(
     'SELECT c.id, c.title,
             COUNT(DISTINCT cs.id) AS total_sessions,
             SUM(CASE WHEN ar.status = "present" THEN 1 ELSE 0 END) AS presents
-     FROM join_requests jr
-     JOIN courses c ON c.id = jr.course_id
-     LEFT JOIN course_sessions cs ON cs.course_id = c.id
-     LEFT JOIN attendance_records ar ON ar.session_id = cs.id AND ar.student_id = :student_id AND ar.status = "present"
+  FROM ' . TABLE_JOIN_REQUESTS . ' jr
+  JOIN ' . TABLE_COURSES . ' c ON c.id = jr.course_id
+  LEFT JOIN ' . TABLE_COURSE_SESSIONS . ' cs ON cs.course_id = c.id
+  LEFT JOIN ' . TABLE_ATTENDANCE_RECORDS . ' ar ON ar.session_id = cs.id AND ar.student_id = :student_id AND ar.status = "present"
      WHERE jr.student_id = :student_id AND jr.status = "approved"
      GROUP BY c.id, c.title'
 );
