@@ -35,11 +35,11 @@ SmartRegister is a lightweight attendance management system built with PHP and M
 
 | Variable        | Purpose                      | Default                     |
 |-----------------|------------------------------|-----------------------------|
-| `AMS_DB_HOST`   | Database hostname             | `127.0.0.1`                |
-| `AMS_DB_PORT`   | Database port                 | `3307`                     |
-| `AMS_DB_NAME`   | Database/schema name          | `Attendance_management_system` |
-| `AMS_DB_USER`   | Username                      | `root`                     |
-| `AMS_DB_PASS`   | Password                      | *(empty string)*           |
+| `AMS_DB_HOST`   | Database hostname             | `localhost`                |
+| `AMS_DB_PORT`   | Database port                 | `3306`                     |
+| `AMS_DB_NAME`   | Database/schema name          | `webtech_2025A_tomoh_ikfingeh` |
+| `AMS_DB_USER`   | Username                      | `tomoh.ikfingeh`           |
+| `AMS_DB_PASS`   | Password                      | *(configured)*             |
 
 You can also use the conventional `DB_HOST`, `DB_PORT`, `DB_NAME`/`DB_DATABASE`, `DB_USER`/`DB_USERNAME`, and `DB_PASS`/`DB_PASSWORD` variable names if your hosting provider already exposes them.
 
