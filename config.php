@@ -1,4 +1,6 @@
 <?php
+require_once __DIR__ . '/env.php';
+
 const TABLE_USERS = '`AMS_users`';
 const TABLE_COURSES = '`AMS_courses`';
 const TABLE_JOIN_REQUESTS = '`AMS_join_requests`';
@@ -7,11 +9,11 @@ const TABLE_ATTENDANCE_RECORDS = '`AMS_attendance_records`';
 const TABLE_COURSE_STAFF = '`AMS_course_staff`';
 
 try {
-    $dbHost = '127.0.0.1';
-    $dbPort = 3307;
-    $dbName = 'Attendance_management_system';
-    $dbUser = 'root';
-    $dbPass = '';
+    $dbHost = ams_env('AMS_DB_HOST', ams_env('DB_HOST', '127.0.0.1'));
+    $dbPort = (int) ams_env('AMS_DB_PORT', ams_env('DB_PORT', 3307));
+    $dbName = ams_env('AMS_DB_NAME', ams_env('DB_NAME', ams_env('DB_DATABASE', 'Attendance_management_system')));
+    $dbUser = ams_env('AMS_DB_USER', ams_env('DB_USER', ams_env('DB_USERNAME', 'root')));
+    $dbPass = ams_env('AMS_DB_PASS', ams_env('DB_PASS', ams_env('DB_PASSWORD', '')));
 
     $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $dbHost, $dbPort, $dbName);
     $pdo = new PDO($dsn, $dbUser, $dbPass, [

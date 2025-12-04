@@ -1,6 +1,6 @@
 # SmartRegister
 
-SmartRegister is a lightweight attendance management system built with PHP and SQLite. It supports three types of users (faculty, interns, students) and streamlines course creation, enrollment requests, and attendance tracking. Faculty and assigned interns can create sessions, generate check-in codes, and mark attendance. Students can request courses, join sessions with a one-time code, and view their daily and overall attendance summaries.
+SmartRegister is a lightweight attendance management system built with PHP and MySQL. It supports three types of users (faculty, interns, students) and streamlines course creation, enrollment requests, and attendance tracking. Faculty and assigned interns can create sessions, generate check-in codes, and mark attendance. Students can request courses, join sessions with a one-time code, and view their daily and overall attendance summaries.
 
 ## Features
 
@@ -19,27 +19,54 @@ SmartRegister is a lightweight attendance management system built with PHP and S
 
 ### Requirements
 - PHP 8+
-- SQLite (bundled with PHP)
-- XAMPP or any LAMP stack
+- MySQL 5.7+ / MariaDB 10+
+- XAMPP or any standard LAMP stack
 
 ### Installation
 1. Clone or download this repository into your web root (`htdocs` for XAMPP).
-2. Ensure the `data` directory is writable (PHP will create it automatically).
-3. Run the seed script to populate demo users:
+2. Run the seed script to populate demo users:
    ```bash
    php seed.php
    ```
-4. Start Apache (if using XAMPP) and navigate to `http://localhost/Attendance_Management_System/Attendance_Management_System/login.php`.
+3. Start Apache (if using XAMPP) and navigate to `http://localhost/Attendance_Management_System/Attendance_Management_System/login.php`.
+
+### Database configuration
+`config.php` now reads connection details from the following environment variables (with sensible local defaults):
+
+| Variable        | Purpose                      | Default                     |
+|-----------------|------------------------------|-----------------------------|
+| `AMS_DB_HOST`   | Database hostname             | `127.0.0.1`                |
+| `AMS_DB_PORT`   | Database port                 | `3307`                     |
+| `AMS_DB_NAME`   | Database/schema name          | `Attendance_management_system` |
+| `AMS_DB_USER`   | Username                      | `root`                     |
+| `AMS_DB_PASS`   | Password                      | *(empty string)*           |
+
+You can also use the conventional `DB_HOST`, `DB_PORT`, `DB_NAME`/`DB_DATABASE`, `DB_USER`/`DB_USERNAME`, and `DB_PASS`/`DB_PASSWORD` variable names if your hosting provider already exposes them.
+
+Example `.htaccess` snippet for shared hosting:
+
+```
+SetEnv AMS_DB_HOST localhost
+SetEnv AMS_DB_PORT 3306
+SetEnv AMS_DB_NAME your_database
+SetEnv AMS_DB_USER your_username
+SetEnv AMS_DB_PASS your_password
+```
+
+After updating the variables (or editing the defaults in `config.php` directly), reload the site and the tables will be created automatically under the `AMS_*` prefixes (`AMS_users`, `AMS_courses`, etc.).
 
 ### Demo Accounts
 - Faculty: `faculty@example.com` / `Faculty123`
 - Intern: `intern@example.com` / `Intern123`
 - Student: `student@example.com` / `Student123`
 
+### Live server
+The project is deployed at: <http://169.239.251.102:341/~tomoh.ikfingeh/Attendance_Management_System/>
+
 ## Code Structure
 ```
 attendance_manage.php     # Attendance hub for faculty/interns
-config.php                # SQLite connection + schema setup
+config.php                # MySQL connection + schema setup
 faculty.php               # Teaching hub (course creation/requests/assistants)
 functions.php             # Shared helpers (auth guards, sanitization, etc.)
 student_dashboard.php     # Student course requests, attendance check-in
@@ -49,16 +76,16 @@ seed.php                  # Seeds demo data and sample attendance session
 ```
 
 ## Key Tables
-- `users`: role-based accounts (faculty, intern, student)
-- `courses`: owned by faculty, optionally assisted by interns (`course_staff`)
-- `join_requests`: student enrollment status per course
-- `course_sessions`: attendance sessions with access codes
-- `attendance_records`: per-session student attendance entries
+- `AMS_users`: role-based accounts (faculty, intern, student)
+- `AMS_courses`: owned by faculty, optionally assisted by interns (`AMS_course_staff`)
+- `AMS_join_requests`: student enrollment status per course
+- `AMS_course_sessions`: attendance sessions with access codes
+- `AMS_attendance_records`: per-session student attendance entries
 
 ## Extending
+- Configure an alternate MySQL database by exporting environment variables (see above) or editing the defaults inside `config.php`.
 - Add more roles or permissions by expanding the `require_roles` helper.
 - Integrate email or SMS notifications when sessions open/close.
-- Replace SQLite with MySQL by updating `config.php` to use the appropriate PDO DSN and credentials.
 
 ## Contributing
 Pull requests are welcome! Please lint PHP files (`php -l filename.php`) before committing and ensure new features include basic seed data for quick testing.
